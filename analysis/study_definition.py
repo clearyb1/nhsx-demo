@@ -57,7 +57,24 @@ study = StudyDefinition(
             "incidence": 0.1,
         },
     ),
-)
+# Did the patient experience a clinical event from the given codelist between
+    # the given dates?
+    had_cholesterol_event=patients.with_these_clinical_events(
+        codelist=cholesterol_codelist,
+        between=BETWEEN,
+        returning="binary_flag",
+        return_expectations={"incidence": 0.1},
+    ),
+    # What clinical event was it?
+    cholesterol_event_code=patients.with_these_clinical_events(
+        codelist=cholesterol_codelist,
+        between=BETWEEN,
+        returning="code",
+        return_expectations={
+            "category": {"ratios": {x: 1 / len(sbp_codelist) for x in sbp_codelist}},
+            "incidence": 0.1,
+        },
+    ),)
 
 # This is where we define measures using the study population. A measure is
 # the value of a numerator divided by a denominator for a given group of patients.
@@ -65,6 +82,15 @@ measures = [
     Measure(
         id="sbp_by_practice",
         numerator="had_sbp_event",
+        denominator="population",
+        group_by=["practice"],
+    ),
+]
+
+measures = [
+    Measure(
+        id="cholesterol_by_practice",
+        numerator="had_cholesterol_event",
         denominator="population",
         group_by=["practice"],
     ),
